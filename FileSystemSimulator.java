@@ -1,4 +1,4 @@
-import java.util.*;
+import java.util.Scanner;
 
 public class FileSystemSimulator {
     private Directory root = new Directory("root");
