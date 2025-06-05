@@ -1,11 +1,10 @@
 import java.util.*;
-import java.io.Serializable;
 
-public class Directory implements Serializable {
-    private String name;
-    private Map<String, File> files = new HashMap<>();
-    private Map<String, Directory> subdirectories = new HashMap<>();
-    private Directory parent;
+public class Directory {
+    private final String name;
+    private final Directory parent;
+    private final Map<String, File> files = new HashMap<>();
+    private final Map<String, Directory> subdirectories = new HashMap<>();
 
     public Directory(String name, Directory parent) {
         this.name = name;
@@ -14,6 +13,10 @@ public class Directory implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public Directory getParent() {
+        return parent;
     }
 
     public Map<String, File> getFiles() {
@@ -29,7 +32,7 @@ public class Directory implements Serializable {
     }
 
     public void addSubdirectory(Directory directory) {
-        subdirectories.put(directory.getName(), directory);
+        subdirectories.put(directory.getName(), directory);  // <- ESSA LINHA É ESSENCIAL
     }
 
     public void removeFile(String fileName) {
@@ -48,15 +51,8 @@ public class Directory implements Serializable {
         return subdirectories.get(directoryName);
     }
 
-    public Directory getParent() {
-        return parent;
-    }
-
     public String getPath() {
-        if (parent == null) {
-            return "/";
-        } else {
-            return parent.getPath() + name + "/";
-        }
+        if (parent == null) return "/";
+        return parent.getPath() + name + "/";
     }
 }
