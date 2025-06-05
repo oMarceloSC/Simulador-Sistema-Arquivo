@@ -1,4 +1,6 @@
-public class File {
+import java.io.Serializable;
+
+public class File implements Serializable {
     private String name;
     private String content;
 

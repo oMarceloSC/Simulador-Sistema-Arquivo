@@ -1,9 +1,10 @@
 import java.util.*;
 
 public class FileSystemSimulator {
-    private Directory root = new Directory("root");
-    private Journal journal = new Journal();
-    private Scanner scanner = new Scanner(System.in);
+    private final Directory root = new Directory("root", null);
+    private final Journal journal = new Journal();
+    private final Scanner scanner = new Scanner(System.in);
+    private Directory current = root;
 
     public static void main(String[] args) {
         new FileSystemSimulator().start();
@@ -13,55 +14,80 @@ public class FileSystemSimulator {
         System.out.println("Sistem File Simulator");
 
         while(true) {
-            System.out.println("\n1. Create File\n2. List Files\n3. Del file\n4. leave");
-            System.out.print("Choice: ");
+            System.out.print(current.getPath() + " > ");
+            String input = scanner.nextLine();
+            String[] parts = input.split(" ", 2);
+            String command = parts[0];
+            String arg = parts.length > 1 ? parts[1] : "";
 
-            String choice = scanner.nextLine();
-            switch (choice) {
-                case "1" -> createFile();
-                case "2" -> listFiles();
-                case "3" -> deleteFile();
-                case "4" -> {
-                    System.out.println("Exiting...");
-                    return;
-                }
-                default -> System.out.println("Invalid choice. Please try again.");
+        switch (command) {
+            case "mkdir" -> createDirectory(arg);
+            case "ls" -> listFiles();
+            case "cd" -> changeDirectory(arg);
+            case "touch" -> createFile(arg);
+            case "rm" -> deleteFile(arg);
+            case "exit" -> {
+                System.out.println("Exiting...");
+                return;
+            }
+            default -> System.out.println("Unknown command: " + command);
             }
         }
     }
 
-    private void createFile() {
-        System.out.print("File name: ");
-        String fileName = scanner.nextLine();
-        System.out.print("File content: ");
-        String fileContent = scanner.nextLine();
+    private void createFile(String name) {
+        if (name.isEmpty()) return;
+        if (current.getFile(name) != null) {
+            System.out.println("File already exists!");
+            return;
+        }
 
-        File file = new File(fileName, fileContent);
-        root.addFile(file);
-        journal.log("File created: " + fileName);
+        System.out.print("Content: ");
+        String content = scanner.nextLine();
+        File newFile = new File(name, content);
+        current.addFile(newFile);
+        journal.log("File created: " + current.getPath() + name);
     }
 
     private void listFiles() {
-        if (root.getFiles().isEmpty()) {
-            System.out.println("No files.");
-            return;
-        }
-        System.out.println("Files:");
-        for (String fileName : root.getFiles().keySet()) {
-            System.out.println ("- " + fileName);
+        System.out.println("Directories: ");
+        for (String dirName : current.getSubdirectories().keySet())
+            System.out.println("  " + dirName);
+        
+        System.out.println("Files: ");
+        for (String fileName : current.getFiles().keySet())
+            System.out.println("  " + fileName);
+    }
+
+    private void deleteFile(String name) {
+        if (current.getFile(name) != null) {
+            current.removeFile(name);
+            journal.log("File deleted: " + current.getPath() + name);
+        } else if (current.getSubdirectory(name) != null) {
+            current.removeSubdirectory(name);
+            journal.log("Directory deleted: " + current.getPath() + name);
+        } else {
+            System.out.println("File or directory not found: " + name);
         }
     }
 
-    private void deleteFile() {
-        System.out.print("File name to delete: ");
-        String name = scanner.nextLine();
+    private void createDirectory (String name) {
+        if (name.isEmpty()) return;
+        if (current.getSubdirectory(name) != null) {
+            System.out.println("Directory already exists!");
+            return;
+        }
+        Directory newDir = new Directory(name, current);
+        current.addSubdirectory(newDir);
+        journal.log("Directory created: " + current.getPath() + name);
+    }
 
-        if (root.getFile(name) != null){
-            root.removeFile(name);
-            journal.log("File deleted: " + name);
-            System.out.println("File deleted: " + name);
-        } else {
-            System.out.println("File not found: " + name);
+    private void changeDirectory(String name) {
+        if (name.equals("..")) {
+            if (current.getParent() != null) 
+                current = current.getParent();
+            else
+                System.out.println("Directory not found.");
         }
     }
 }

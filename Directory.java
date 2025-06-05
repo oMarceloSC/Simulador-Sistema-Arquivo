@@ -1,12 +1,15 @@
 import java.util.*;
+import java.io.Serializable;
 
-public class Directory {
+public class Directory implements Serializable {
     private String name;
     private Map<String, File> files = new HashMap<>();
     private Map<String, Directory> subdirectories = new HashMap<>();
+    private Directory parent;
 
-    public Directory(String name) {
+    public Directory(String name, Directory parent) {
         this.name = name;
+        this.parent = parent;
     }
 
     public String getName() {
@@ -43,5 +46,17 @@ public class Directory {
 
     public Directory getSubdirectory(String directoryName) {
         return subdirectories.get(directoryName);
+    }
+
+    public Directory getParent() {
+        return parent;
+    }
+
+    public String getPath() {
+        if (parent == null) {
+            return "/";
+        } else {
+            return parent.getPath() + name + "/";
+        }
     }
 }
